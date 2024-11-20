@@ -155,13 +155,15 @@ void handleMainMenu(GameState& gameState, float& touchX, float& touchY) {
     LCD.WriteAt("Biome Explorer", 80, 5);
     LCD.WriteAt("Go on an Adventure", 50, 50);
     
-    
+
     std::vector<MenuButton> buttons = createMainMenuButtons();
     for (const auto& button : buttons) {
         drawMenuButton(button);
     }
     
-    
+    while(!LCD.Touch(&touchX,&touchY)) {};
+
+       
     if (touchX >= 0 && touchY >= 0) {
         for (size_t i = 0; i < buttons.size(); i++) {
             const auto& button = buttons[i];
@@ -187,6 +189,7 @@ void handleMainMenu(GameState& gameState, float& touchX, float& touchY) {
                 }
                 touchX = -1;
                 touchY = -1;
+                Sleep(0.2);
                 break;
             }
         }
@@ -470,6 +473,8 @@ void handleBiomeSelect(GameState& gameState, float& touchX, float& touchY,
                 } else if (region.name == "Safari") {
                     gameState.currentState = SAFARI_BIOME;
                 }
+                
+                Sleep(0.2);
 
                 touchX = -1; // Reset touch
                 touchY = -1;
@@ -490,7 +495,7 @@ bool handleQuestionInput(GameState& gameState, float touchX, float touchY) {
             touchX <= QUESTION_BOX_X + QUESTION_BOX_WIDTH - 20 &&
             touchY >= buttonY && 
             touchY <= buttonY + ANSWER_BUTTON_HEIGHT) {
-            
+            Sleep(1.0);
             LCD.Clear();
             
             if (gameState.currentQuestion->answers[i] == 
@@ -541,11 +546,13 @@ void handleBiome(GameState& gameState, int biomeState, const char* imageFile,
     drawBackButton();
     drawStatusBar(gameState.totalCoins, gameState.totalLives);
     
+    
     // Handle touch input
     if (touchX >= 0 && touchY >= 0) {
         // Check for back button 
         if (isTouchInRegion(touchX, touchY, 10, 10, 60, 30)) {
             gameState.currentState = BIOME_SELECT;
+            Sleep(0.2);
             return;
         }
 
