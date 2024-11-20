@@ -16,8 +16,8 @@
 #define SAFARI_BIOME 7
 #define QUESTION_STATE 8
 
-#define SCREEN_WIDTH 319
-#define SCREEN_HEIGHT 239
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 240
 
 // Menu Button Constants
 #define MENU_BUTTON_WIDTH 150
@@ -291,17 +291,17 @@ std::map<int, std::vector<ClickableRegion>> getBiomeAnimals() {
     
     // Desert animals
     biomeAnimals[DESERT_BIOME] = {
-        {50, 80, 60, 40, "Camel", 
+        {80, 104, 66, 87, "Camel", 
          "How do camels survive in the desert?",
          "Store water in humps",
          {"Store water in humps", "Drink cactus juice", "Sleep during day", "Eat sand"},
          false},
-        {150, 100, 80, 40, "Horned Lizard", 
+        {162, 158, 100, 43, "Lizard", 
          "What defense mechanism does a horned lizard have?",
          "Shoots blood from eyes",
          {"Shoots blood from eyes", "Changes color", "Grows larger", "Becomes invisible"},
          false},
-        {200, 120, 100, 60, "Sidewinder Snake",
+        {157, 71, 77, 96, "Snake",
          "How does a sidewinder snake move in hot sand?",
          "Sideways motion",
          {"Sideways motion", "Jumping", "Rolling", "Swimming"},
@@ -310,40 +310,67 @@ std::map<int, std::vector<ClickableRegion>> getBiomeAnimals() {
     
     // Tundra animals
     biomeAnimals[TUNDRA_BIOME] = {
-        {40, 90, 70, 50, "Polar Bear",
+        {125, 110, 48, 25, "Polar Bear",
          "How do polar bears stay warm in the Arctic?",
          "Thick blubber layer",
          {"Thick blubber layer", "Hot springs", "Underground caves", "Constant movement"},
          false},
-        {140, 85, 60, 40, "Arctic Fox",
-         "What color is an Arctic Fox in summer?",
-         "Brown/gray",
-         {"Brown/gray", "Pure white", "Black", "Blue"},
+        
+        {193, 190, 89, 27, "Orca",
+         "Primary diet of orca?",
+         "Fish",
+         {"Plankton", "Fish", "Seaweed", "Insects"},
+         false},
+        
+        {103, 103, 11, 23, "Penguin 1",
+         "What helps penguin swim efficiently?",
+         "Flipper-like wings",
+         {"Webbed feet", "Flipper-like wings", "Claws", "Long tails"},
+         false},
+        
+        {83, 160, 27, 30, "Penguin 2",
+         "What species of penguin is largest",
+         "Emperor",
+         {"King", "Adelie", "Chinstrap", "Emperor"},
          false}
     };
     
     // Forest animals (Temperate)
     biomeAnimals[FOREST_BIOME] = {
-        {60, 100, 70, 50, "Red Fox",
-         "What is a red fox's primary hunting time?",
-         "Dawn and dusk",
-         {"Dawn and dusk", "Midnight", "Noon", "Early afternoon"},
+        {68, 105, 44, 25, "Black Bear",
+         "What do black bears  eat during the fall for hibernation?",
+         "Berries and nuts",
+         {"Insects", "Fish", "Berries and nuts", "Small mammals"},
          false},
-        {180, 90, 60, 40, "Black Bear",
-         "What do black bears do in winter?",
-         "Hibernate",
-         {"Hibernate", "Migrate south", "Hunt more", "Build nests"},
+        
+        {182, 131, 31, 25, "Red Fox",
+         "What is a typical hunting strategy used by a fox?",
+         "Ambushing prey with a pounce",
+         {"Digging for food", "Ambushing prey with a pounce", "Waiting in trees for prey", "Hunting in large packs"},
+         false},
+        
+        {153, 159, 13, 14, "Bunny",
+         "What is a bunny's main source of nutrition?",
+         "Grass and leafy plants",
+         {"Grass and leafy plants", "Nuts and seeds", "Insects", "Fish"},
          false}
     };
     
     // Safari animals
     biomeAnimals[SAFARI_BIOME] = {
-        {50, 85, 80, 60, "Giraffe",
+        {193, 75, 53, 94, "Giraffe",
          "Why do giraffes have long necks?",
          "Reach tall trees",
          {"Reach tall trees", "See predators", "Stay cool", "Look pretty"},
          false},
-        {160, 100, 70, 50, "Lion",
+        
+        {147, 127, 39, 40, "Zebra",
+         "What is the primary purpose of a zebra's striped coat?",
+         "Confusing predators ",
+         {"Camouflage ", "Attracting mates", "Confusing predators ", "Regulate body temperature"},
+         false},
+        
+        {80, 123, 41, 45, "Lion",
          "Which lions do most of the hunting?",
          "Female lions",
          {"Female lions", "Male lions", "Cubs", "All hunt equally"},
@@ -357,6 +384,8 @@ bool checkRegionClick(float x, float y, const ClickableRegion& region) {
     return (x >= region.x && x <= region.x + region.width &&
             y >= region.y && y <= region.y + region.height);
 }
+
+
 
 void drawQuestion(const ClickableRegion& animal) {
     LCD.Clear();
@@ -412,6 +441,9 @@ void drawQuestion(const ClickableRegion& animal) {
     }
 }
 
+
+
+
 void drawStatusBar(int coins, int lives) {
     // Create status bar background
     LCD.SetFontColor(BLACK);
@@ -420,16 +452,16 @@ void drawStatusBar(int coins, int lives) {
     // Draw coin icon and count
     FEHImage coinIcon;
     coinIcon.Open("coin.png");
-    coinIcon.Draw(10, SCREEN_HEIGHT - 30);
+    coinIcon.Draw(14, SCREEN_HEIGHT - 30);
     
     LCD.SetFontColor(WHITE);
-    LCD.WriteAt(coins, 45, SCREEN_HEIGHT - 25);
+    LCD.WriteAt(coins, 45, SCREEN_HEIGHT - 22);
     
     // Draw hearts for lives
     FEHImage heartIcon;
     heartIcon.Open("heart.png");
     for(int i = 0; i < lives; i++) {
-        heartIcon.Draw(160 + (i * 35), SCREEN_HEIGHT - 30);
+        heartIcon.Draw(185 + (i * 35), SCREEN_HEIGHT - 30);
     }
 }
 
@@ -541,32 +573,48 @@ void handleQuestionState(GameState& gameState, float touchX, float touchY) {
 void handleBiome(GameState& gameState, int biomeState, const char* imageFile, 
                  std::map<int, std::vector<ClickableRegion>>& biomeAnimals,
                  float touchX, float touchY) {
-    // Draw biome background and UI elements
-    loadAndDrawImage(imageFile);
-    drawBackButton();
-    drawStatusBar(gameState.totalCoins, gameState.totalLives);
-    
-    
-    // Handle touch input
-    if (touchX >= 0 && touchY >= 0) {
-        // Check for back button 
-        if (isTouchInRegion(touchX, touchY, 10, 10, 60, 30)) {
-            gameState.currentState = BIOME_SELECT;
-            Sleep(0.2);
-            return;
-        }
 
-        // Check for animal clicks 
-        auto& animals = biomeAnimals[biomeState];
-        for (auto& animal : animals) {
-            if (isTouchInRegion(touchX, touchY, animal.x, animal.y, animal.width, animal.height)) {
-                gameState.currentQuestion = &animal;
-                gameState.previousState = biomeState;
-                gameState.currentState = QUESTION_STATE;
+    
+    while (true){
+        loadAndDrawImage(imageFile);
+        drawBackButton();
+        drawStatusBar(gameState.totalCoins, gameState.totalLives);
+        
+        while(!LCD.Touch(&touchX,&touchY)) {};
+        /* Wait until the touch releases */
+        while(LCD.Touch(&touchX,&touchY)) {};
+        
+        /*
+        LCD.WriteLine("The screen was under pressure");
+        LCD.Write("At x coordinate: ");
+        LCD.WriteLine(touchX);
+        LCD.Write("At y coordinate: ");
+        LCD.WriteLine(touchY);
+        Sleep(3.0);
+        */
+
+        // Handle touch input
+        if (touchX >= 0 && touchY >= 0) {
+            // Check for back button 
+            if (isTouchInRegion(touchX, touchY, 10, 10, 60, 30)) {
+                gameState.currentState = BIOME_SELECT;
+                Sleep(0.2);
                 return;
             }
+
+            // Check for animal clicks 
+            auto& animals = biomeAnimals[biomeState];
+            for (auto& animal : animals) {
+                if (isTouchInRegion(touchX, touchY, animal.x, animal.y, animal.width, animal.height)) {
+                    gameState.currentQuestion = &animal;
+                    gameState.previousState = biomeState;
+                    gameState.currentState = QUESTION_STATE;
+                    return;
+                }
+            }
         }
-    }
+        LCD.Clear();
+    }   
 }
 
 
