@@ -41,6 +41,12 @@ struct ClickableRegion {
     bool visited;  
 };
 
+// Helper function to check if a touch is within a rectangular region
+bool isTouchInRegion(float touchX, float touchY, float x, float y, float width, float height) {
+    return (touchX >= x && touchX <= x + width && touchY >= y && touchY <= y + height);
+}
+
+
 struct MenuButton {
     int x;
     int y;
@@ -69,8 +75,13 @@ public:
     }
 };
 
+/*
+Try removing this function. I feel like
+its easier manually doing this as the functionality is 
+iffy
+*/
 void drawCenteredText(const char* text, int y, int fontSize = 1) {
-    int textWidth = strlen(text) * 12 * fontSize;  // Approximate width
+    int textWidth = strlen(text) * 12 * fontSize;  
     int x = (SCREEN_WIDTH - textWidth) / 2;
     if(fontSize > 1) {
         LCD.SetFontColor(WHITE);
@@ -118,7 +129,7 @@ void drawMenuButton(const MenuButton& button) {
 
 
 void drawBackButton() {
-    // Draw pixel-art style back button
+    // Draw back button
     LCD.SetFontColor(WHITE);
     LCD.DrawRectangle(10, 10, 60, 30);
     // Inner border
@@ -129,47 +140,62 @@ void drawBackButton() {
     LCD.WriteAt("Back", 16, 15);
 }
 
-void handleMainMenu(GameState& gameState, float touchX, float touchY) {
+void handleMainMenu(GameState& gameState, float& touchX, float& touchY) {
+    // Clear the screen and set up the main menu UI
     LCD.Clear(BLACK);
     
+    // Load and draw the main menu background
     FEHImage main;
     main.Open("home.png");
     main.Draw(0, 0);
-
+    main.Close(); // Always close files after use to avoid memory issues
+    
+    // Display menu title and subtitle
     LCD.SetFontColor(BLACK);
     LCD.WriteAt("Biome Explorer", 80, 5);
-    LCD.WriteAt("Go on an Adventure", 50, 50 );
+    LCD.WriteAt("Go on an Adventure", 50, 50);
     
-    // Draw buttons
+    
     std::vector<MenuButton> buttons = createMainMenuButtons();
-    for(const auto& button : buttons) {
+    for (const auto& button : buttons) {
         drawMenuButton(button);
     }
     
-    if(touchX >= 0 && touchY >= 0) {
-        for(size_t i = 0; i < buttons.size(); i++) {
+    
+    if (touchX >= 0 && touchY >= 0) {
+        for (size_t i = 0; i < buttons.size(); i++) {
             const auto& button = buttons[i];
-            if(touchX >= button.x && touchX <= button.x + button.width &&
-               touchY >= button.y && touchY <= button.y + button.height) {
-                switch(i) {
-                    // Play
-                    case 0:  
+            if (isTouchInRegion(touchX, touchY, button.x, button.y, button.width, button.height)) {
+                gameState.previousState = gameState.currentState;  // Save current state
+                switch (i) {
+                    /*
+                    Look through connection to biome selctor
+                    as this specifically is likly the root cause 
+                    of the unreliability of the play game button
+
+                    */
+                    
+                    case 0:  // Play Game
                         gameState.currentState = BIOME_SELECT;
                         break;
-                    // Instructions
-                    case 1: 
+                    case 1:  // Instructions
                         gameState.currentState = INSTRUCTIONS;
                         break;
-                    // Credits
-                    case 2: 
+                    case 2:  // Credits
                         gameState.currentState = CREDITS;
                         break;
                 }
+                touchX = -1;
+                touchY = -1;
                 break;
             }
         }
     }
+    
+   
+    
 }
+
 
 // function to display instructions
 void handleInstructions(GameState& gameState, float touchX, float touchY) {
@@ -197,11 +223,12 @@ void handleInstructions(GameState& gameState, float touchX, float touchY) {
         drawBackButton();
         needsRedraw = false;
     }
-    
+        
     if(touchX >= 10 && touchX <= 70 && touchY >= 10 && touchY <= 40) {
         gameState.currentState = MAIN_MENU;
         needsRedraw = true;
     }
+    
 }
 
 //  handleCredits to include a back button
@@ -216,11 +243,11 @@ void handleCredits(GameState& gameState, float touchX, float touchY) {
         credit.Open("credits.png");
         credit.Draw(0, 0);        
 
-        LCD.WriteAt("Development Team:", 20, 45);
-        LCD.WriteAt("Samuel Wales-McGrath ", 20, 70);
+        LCD.WriteAt("Development Team:", 20, 55);
+        LCD.WriteAt("Samuel Wales-McGrath ", 20, 80);
         LCD.WriteAt("", 20, 70);
         LCD.WriteAt("Special Thanks To:", 20, 150);
-        LCD.WriteAt("FEH Ethan Joll and TAs", 20, 175);
+        LCD.WriteAt("FEH, Ethan Joll, and TAs", 20, 175);
         LCD.WriteAt("As well as ClassMates", 20, 200);
         
         //  back button
@@ -228,11 +255,13 @@ void handleCredits(GameState& gameState, float touchX, float touchY) {
         needsRedraw = false;
     }
     
-    // Check for back button click
+    
+    //Check for back button click
     if(touchX >= 10 && touchX <= 70 && touchY >= 10 && touchY <= 40) {
         gameState.currentState = MAIN_MENU;
         needsRedraw = true;
     }
+    
 }
 
 
@@ -403,42 +432,59 @@ void drawStatusBar(int coins, int lives) {
 
 
 
-
-void handleBiomeSelect(GameState& gameState, float touchX, float touchY, 
-                      const std::vector<ClickableRegion>& biomeRegions) {
-    // Draw the screen first
+void handleBiomeSelect(GameState& gameState, float& touchX, float& touchY, 
+                       const std::vector<ClickableRegion>& biomeRegions) {
+    // Clear and draw the biome selection screen
+    LCD.Clear(BLACK);
     loadAndDrawImage("biomes1.png");
-    LCD.SetFontColor(WHITE);
-    drawCenteredText("Pick Your Biome", 111);
-    drawStatusBar(gameState.totalCoins, gameState.totalLives);
-    drawBackButton();
     
-    // Handle touch input 
-    if(touchX >= 0 && touchY >= 0) {
-        // Check back button first
-        if(touchX >= 10 && touchX <= 70 && touchY >= 10 && touchY <= 40) {
+    
+    // Display the title and status bar
+    LCD.SetFontColor(WHITE);
+    drawCenteredText("Pick Your Biome", 111); // Title
+    drawStatusBar(gameState.totalCoins, gameState.totalLives); // Coins and lives
+    drawBackButton(); // Draw back button in a consistent location
+
+    // Handle touch input
+    if (touchX >= 0 && touchY >= 0) {
+        // Check the back button first
+        if (isTouchInRegion(touchX, touchY, 10, 10, 60, 30)) { // Back button coordinates
             gameState.currentState = MAIN_MENU;
+            touchX = -1; // Reset touch to avoid accidental multiple clicks
+            touchY = -1;
             return;
         }
-        
-        // Check regions
-        for(const auto& region : biomeRegions) {
-            if(checkRegionClick(touchX, touchY, region)) {
-                if(region.name == "Desert") gameState.currentState = DESERT_BIOME;
-                else if(region.name == "Tundra") gameState.currentState = TUNDRA_BIOME;
-                else if(region.name == "Forest") gameState.currentState = FOREST_BIOME;
-                else if(region.name == "Safari") gameState.currentState = SAFARI_BIOME;
+
+        // Check biome regions
+        for (const auto& region : biomeRegions) {
+            if (checkRegionClick(touchX, touchY, region)) {
+                gameState.previousState = gameState.currentState;
+                
+                // Set the game state based on the clicked region
+                if (region.name == "Desert") {
+                    gameState.currentState = DESERT_BIOME;
+                } else if (region.name == "Tundra") {
+                    gameState.currentState = TUNDRA_BIOME;
+                } else if (region.name == "Forest") {
+                    gameState.currentState = FOREST_BIOME;
+                } else if (region.name == "Safari") {
+                    gameState.currentState = SAFARI_BIOME;
+                }
+
+                touchX = -1; // Reset touch
+                touchY = -1;
                 return;
             }
         }
     }
 }
 
+
 bool handleQuestionInput(GameState& gameState, float touchX, float touchY) {
     if (!gameState.currentQuestion) return false;
     
     for(int i = 0; i < gameState.currentQuestion->answers.size(); i++) {
-        int buttonY = QUESTION_BOX_Y + 50 + (i * 30); // Adjusted spacing
+        int buttonY = QUESTION_BOX_Y + 50 + (i * 30); 
         
         if (touchX >= QUESTION_BOX_X + 10 && 
             touchX <= QUESTION_BOX_X + QUESTION_BOX_WIDTH - 20 &&
@@ -490,21 +536,23 @@ void handleQuestionState(GameState& gameState, float touchX, float touchY) {
 void handleBiome(GameState& gameState, int biomeState, const char* imageFile, 
                  std::map<int, std::vector<ClickableRegion>>& biomeAnimals,
                  float touchX, float touchY) {
-    // Draw biome background
+    // Draw biome background and UI elements
     loadAndDrawImage(imageFile);
     drawBackButton();
     drawStatusBar(gameState.totalCoins, gameState.totalLives);
     
-    if(touchX >= 0 && touchY >= 0) {
-        // Check for back button click
-        if(touchX >= 10 && touchX <= 70 && touchY >= 10 && touchY <= 40) {
+    // Handle touch input
+    if (touchX >= 0 && touchY >= 0) {
+        // Check for back button 
+        if (isTouchInRegion(touchX, touchY, 10, 10, 60, 30)) {
             gameState.currentState = BIOME_SELECT;
             return;
         }
-        
-        // Check for animal clicks
-        for(auto& animal : biomeAnimals[biomeState]) {
-            if(checkRegionClick(touchX, touchY, animal)) {
+
+        // Check for animal clicks 
+        auto& animals = biomeAnimals[biomeState];
+        for (auto& animal : animals) {
+            if (isTouchInRegion(touchX, touchY, animal.x, animal.y, animal.width, animal.height)) {
                 gameState.currentQuestion = &animal;
                 gameState.previousState = biomeState;
                 gameState.currentState = QUESTION_STATE;
@@ -513,6 +561,7 @@ void handleBiome(GameState& gameState, int biomeState, const char* imageFile,
         }
     }
 }
+
 
 int main() {
     // Initialize game state and touch variables
@@ -594,7 +643,7 @@ int main() {
                 break;
                 
             default:
-                // Handle invalid state by returning to main menu
+                //Handle invalid state by returning to main menu
                 gameState.currentState = MAIN_MENU;
                 LCD.Clear(BLACK);
                 break;
