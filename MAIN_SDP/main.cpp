@@ -8,13 +8,14 @@
 // Updated Game States
 #define MAIN_MENU 0
 #define INSTRUCTIONS 1
-#define CREDITS 2
-#define BIOME_SELECT 3
-#define DESERT_BIOME 4
-#define TUNDRA_BIOME 5
-#define FOREST_BIOME 6
-#define SAFARI_BIOME 7
-#define QUESTION_STATE 8
+#define STATS 2
+#define CREDITS 3
+#define BIOME_SELECT 4
+#define DESERT_BIOME 5
+#define TUNDRA_BIOME 6
+#define FOREST_BIOME 7
+#define SAFARI_BIOME 8
+#define QUESTION_STATE 9
 
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
@@ -25,12 +26,12 @@
 #define MENU_BUTTON_SPACING 10
 
 // Question UI constants
-#define QUESTION_BOX_X 40
-#define QUESTION_BOX_Y 50
-#define QUESTION_BOX_WIDTH 240  
-#define QUESTION_BOX_HEIGHT 140 
-#define ANSWER_BUTTON_HEIGHT 20 
-#define ANSWER_SPACING 25  
+#define QUESTION_BOX_X 0
+#define QUESTION_BOX_Y 20
+#define QUESTION_BOX_WIDTH 320  
+#define QUESTION_BOX_HEIGHT 200 
+#define ANSWER_BUTTON_HEIGHT 30 
+#define ANSWER_SPACING 35  
 
 struct ClickableRegion {
     int x, y, width, height;
@@ -90,25 +91,33 @@ void drawCenteredText(const char* text, int y, int fontSize = 1) {
 }
 
 std::vector<MenuButton> createMainMenuButtons() {
-    int startY = 100;
+    int startY = 80;
     std::vector<MenuButton> buttons = {
         {(SCREEN_WIDTH - MENU_BUTTON_WIDTH) / 2, 
          startY, 
          MENU_BUTTON_WIDTH, 
          MENU_BUTTON_HEIGHT, 
          "Play Game"},
+
+        {(SCREEN_WIDTH - MENU_BUTTON_WIDTH) / 2, 
+         startY + (MENU_BUTTON_HEIGHT + MENU_BUTTON_SPACING), 
+         MENU_BUTTON_WIDTH, 
+         MENU_BUTTON_HEIGHT, 
+         "Stats"},
         
         {(SCREEN_WIDTH - MENU_BUTTON_WIDTH) / 2, 
-         startY + MENU_BUTTON_HEIGHT + MENU_BUTTON_SPACING, 
+         startY + 2* (MENU_BUTTON_HEIGHT + MENU_BUTTON_SPACING), 
          MENU_BUTTON_WIDTH, 
          MENU_BUTTON_HEIGHT, 
          "Instructions"},
         
         {(SCREEN_WIDTH - MENU_BUTTON_WIDTH) / 2, 
-         startY + 2 * (MENU_BUTTON_HEIGHT + MENU_BUTTON_SPACING), 
+         startY + 3 * (MENU_BUTTON_HEIGHT + MENU_BUTTON_SPACING), 
          MENU_BUTTON_WIDTH, 
          MENU_BUTTON_HEIGHT, 
-         "Credits"}
+         "Credits"},
+
+  
     };
     return buttons;
 }
@@ -148,7 +157,7 @@ void handleMainMenu(GameState& gameState, float& touchX, float& touchY) {
     FEHImage main;
     main.Open("home.png");
     main.Draw(0, 0);
-    main.Close(); // Always close files after use to avoid memory issues
+    main.Close(); 
     
     // Display menu title and subtitle
     LCD.SetFontColor(BLACK);
@@ -168,24 +177,22 @@ void handleMainMenu(GameState& gameState, float& touchX, float& touchY) {
         for (size_t i = 0; i < buttons.size(); i++) {
             const auto& button = buttons[i];
             if (isTouchInRegion(touchX, touchY, button.x, button.y, button.width, button.height)) {
-                gameState.previousState = gameState.currentState;  // Save current state
+                gameState.previousState = gameState.currentState;  
                 switch (i) {
-                    /*
-                    Look through connection to biome selctor
-                    as this specifically is likly the root cause 
-                    of the unreliability of the play game button
-
-                    */
                     
                     case 0:  // Play Game
                         gameState.currentState = BIOME_SELECT;
                         break;
                     case 1:  // Instructions
-                        gameState.currentState = INSTRUCTIONS;
+                        gameState.currentState = STATS;
                         break;
                     case 2:  // Credits
+                        gameState.currentState = INSTRUCTIONS;
+                        break;
+                    case 3: 
                         gameState.currentState = CREDITS;
                         break;
+
                 }
                 touchX = -1;
                 touchY = -1;
@@ -198,6 +205,28 @@ void handleMainMenu(GameState& gameState, float& touchX, float& touchY) {
    
     
 }
+
+void handleStats(GameState& gameState, float touchX, float touchY) {
+   
+
+    
+    
+        FEHImage stats;
+        stats.Open("stats.png");
+        stats.Draw(0, 0);
+        stats.Close();
+    
+        LCD.SetFontColor(WHITE);
+        LCD.WriteAt("Stats:", 50, 65);
+        drawBackButton();
+    
+    
+    // Check for back button click
+    if (touchX >= 10 && touchX <= 70 && touchY >= 10 && touchY <= 40) {
+        gameState.currentState = MAIN_MENU;
+    }
+}
+
 
 
 // function to display instructions
@@ -311,7 +340,7 @@ std::map<int, std::vector<ClickableRegion>> getBiomeAnimals() {
     // Tundra animals
     biomeAnimals[TUNDRA_BIOME] = {
         {125, 110, 48, 25, "Polar Bear",
-         "How do polar bears stay warm in the Arctic?",
+         "How do polar bears stay warm ?",
          "Thick blubber layer",
          {"Thick blubber layer", "Hot springs", "Underground caves", "Constant movement"},
          false},
@@ -338,19 +367,19 @@ std::map<int, std::vector<ClickableRegion>> getBiomeAnimals() {
     // Forest animals (Temperate)
     biomeAnimals[FOREST_BIOME] = {
         {68, 105, 44, 25, "Black Bear",
-         "What do black bears  eat during the fall for hibernation?",
+         "What do black bears eat for hibernation?",
          "Berries and nuts",
          {"Insects", "Fish", "Berries and nuts", "Small mammals"},
          false},
         
         {182, 131, 31, 25, "Red Fox",
-         "What is a typical hunting strategy used by a fox?",
+         "What is a  hunting strategy used by a fox?",
          "Ambushing prey with a pounce",
          {"Digging for food", "Ambushing prey with a pounce", "Waiting in trees for prey", "Hunting in large packs"},
          false},
         
         {153, 159, 13, 14, "Bunny",
-         "What is a bunny's main source of nutrition?",
+         "What is a bunny's source of nutrition?",
          "Grass and leafy plants",
          {"Grass and leafy plants", "Nuts and seeds", "Insects", "Fish"},
          false}
@@ -365,7 +394,7 @@ std::map<int, std::vector<ClickableRegion>> getBiomeAnimals() {
          false},
         
         {147, 127, 39, 40, "Zebra",
-         "What is the primary purpose of a zebra's striped coat?",
+         "What is the  purpose of a zebra's stripes?",
          "Confusing predators ",
          {"Camouflage ", "Attracting mates", "Confusing predators ", "Regulate body temperature"},
          false},
@@ -405,10 +434,10 @@ void drawQuestion(const ClickableRegion& animal) {
     LCD.SetFontColor(WHITE);
 
     std::string question = animal.question;
-    int maxCharsPerLine = 30;
+    int maxCharsPerLine = 25;
     int yOffset = 0;
     
-    while (question.length() > maxCharsPerLine) {
+    while (question.length() > maxCharsPerLine ) {
         int splitPos = question.substr(0, maxCharsPerLine).find_last_of(" ");
         if (splitPos == std::string::npos) splitPos = maxCharsPerLine;
         
@@ -539,6 +568,7 @@ bool handleQuestionInput(GameState& gameState, float touchX, float touchY) {
                     gameState.currentQuestion->visited = true;
                 }
             } else {
+                
                 LCD.SetFontColor(RED);
                 drawCenteredText("Wrong!", SCREEN_HEIGHT/2 - 10);
                 gameState.totalLives--;
@@ -654,6 +684,10 @@ int main() {
             case MAIN_MENU:
                 handleMainMenu(gameState, touchX, touchY);
                 break;
+            
+            case STATS:
+                handleStats(gameState, touchX, touchY);
+                break;
                 
             case INSTRUCTIONS:
                 handleInstructions(gameState, touchX, touchY);
@@ -696,6 +730,8 @@ int main() {
                     LCD.Clear(BLACK);
                 }
                 break;
+            
+
                 
             default:
                 //Handle invalid state by returning to main menu
