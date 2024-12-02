@@ -161,7 +161,7 @@ void handleMainMenu(GameState& gameState, float& touchX, float& touchY) {
     
     // Display menu title and subtitle
     LCD.SetFontColor(BLACK);
-    LCD.WriteAt("Biome Explorer", 80, 5);
+    LCD.WriteAt("EcoQuest", 105, 20);
     LCD.WriteAt("Go on an Adventure", 50, 50);
     
 
@@ -217,7 +217,11 @@ void handleStats(GameState& gameState, float touchX, float touchY) {
         stats.Close();
     
         LCD.SetFontColor(WHITE);
-        LCD.WriteAt("Stats:", 50, 65);
+        LCD.WriteAt("Stats: 0", 50, 65);
+        LCD.WriteAt("Coins: 0", 70, 90);
+        LCD.WriteAt("Best Play:", 70, 120);
+
+
         drawBackButton();
     
     
@@ -277,6 +281,7 @@ void handleCredits(GameState& gameState, float touchX, float touchY) {
 
         LCD.WriteAt("Development Team:", 20, 55);
         LCD.WriteAt("Samuel Wales-McGrath ", 20, 80);
+        LCD.WriteAt("Vamshi Somapoli ", 20, 110);
         LCD.WriteAt("", 20, 70);
         LCD.WriteAt("Special Thanks To:", 20, 150);
         LCD.WriteAt("FEH, Ethan Joll, and TAs", 20, 175);
@@ -614,15 +619,6 @@ void handleBiome(GameState& gameState, int biomeState, const char* imageFile,
         /* Wait until the touch releases */
         while(LCD.Touch(&touchX,&touchY)) {};
         
-        /*
-        LCD.WriteLine("The screen was under pressure");
-        LCD.Write("At x coordinate: ");
-        LCD.WriteLine(touchX);
-        LCD.Write("At y coordinate: ");
-        LCD.WriteLine(touchY);
-        Sleep(3.0);
-        */
-
         // Handle touch input
         if (touchX >= 0 && touchY >= 0) {
             // Check for back button 
