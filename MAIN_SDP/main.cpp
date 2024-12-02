@@ -281,7 +281,7 @@ void handleCredits(GameState& gameState, float touchX, float touchY) {
 
         LCD.WriteAt("Development Team:", 20, 55);
         LCD.WriteAt("Samuel Wales-McGrath ", 20, 80);
-        LCD.WriteAt("Vamshi Somapoli ", 20, 110);
+        LCD.WriteAt("Vamshi Somapalli ", 20, 110);
         LCD.WriteAt("", 20, 70);
         LCD.WriteAt("Special Thanks To:", 20, 150);
         LCD.WriteAt("FEH, Ethan Joll, and TAs", 20, 175);
